@@ -1,0 +1,200 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * * * * * *
+ *            Copyright (C) 2018 Institute of Computing Technology, CAS
+ *               Author : Han Shukai (email : hanshukai@ict.ac.cn)
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * * * * * *
+ *        Process scheduling related content, such as: scheduler, process blocking, 
+ *                 process wakeup, process creation, process kill, etc.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * * * * * *
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE. 
+ * 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * * * * * */
+
+#ifndef INCLUDE_SCHEDULER_H_
+#define INCLUDE_SCHEDULER_H_
+
+#include "type.h"
+#include "queue.h"
+#include "lock.h"
+
+#define NUM_MAX_TASK 16
+
+#define BUFFER_ADDR 0xa0d00000
+#define NAME_ADDR   0xa0d80000
+#define SD_START_ADDR (0x00100000*512)
+
+/* used to save register infomation */
+typedef struct regs_context
+{
+    /* Saved main processor registers.*/
+    /* 32 * 4B = 128B */
+    uint32_t regs[32];
+
+    /* Saved special registers. */
+    /* 7 * 4B = 28B */
+    uint32_t cp0_status;
+    uint32_t hi;
+    uint32_t lo;
+    uint32_t cp0_badvaddr;
+    uint32_t cp0_cause;
+    uint32_t cp0_epc;
+    uint32_t pc;
+
+} regs_context_t; /* 128 + 28 = 156B */
+
+typedef struct lock_struct
+{
+    int num;//现有锁的个数
+    mutex_lock_t *lock[16];//锁指针
+} lock_t;
+
+typedef enum {
+    TASK_BLOCKED,
+    TASK_RUNNING,
+    TASK_READY,
+    TASK_EXITED,
+    TASK_SLEEPING,
+} task_status_t;
+
+typedef enum {
+    KERNEL_PROCESS,
+    KERNEL_THREAD,
+    USER_PROCESS,
+    USER_THREAD,
+} task_type_t;
+
+/* Process Control Block */
+typedef struct pcb
+{
+    /* register context */
+    regs_context_t kernel_context;
+    regs_context_t user_context;
+
+    uint32_t kernel_stack_top;
+    uint32_t user_stack_top;
+
+    /* previous, next pointer */
+    struct pcb *prev;
+    struct pcb *next;
+
+    /* process id */
+    pid_t pid;
+
+    /* kernel/user thread/process */
+    task_type_t type;
+
+    /* BLOCK | READY | RUNNING */
+    task_status_t status;
+
+    /* cursor position */
+    int cursor_x;
+    int cursor_y;
+
+    int sleep_time;
+    int begin_time;
+
+    int tag;//0表示无效进程，1表示有效进程
+
+    // lock_t lock_1;
+    // lock_t lock_2;
+
+    queue_t block_queue;
+
+    lock_t pcb_lock;
+
+} pcb_t;
+
+/* task information, used to init PCB */
+typedef struct task_info
+{
+    uint8_t name[7];
+    uint32_t entry_point;
+    task_type_t type;
+} task_info_t;
+
+typedef struct sector_offset{
+    uint32_t offset;
+    uint32_t base;
+} sector_offset_t;
+
+typedef struct file
+{
+    uint32_t used;
+    uint32_t inode_index;
+    uint32_t access;
+    uint32_t wptr;
+    uint32_t rptr;
+} file_t;
+
+/* ready queue to run */
+extern queue_t ready_queue;
+
+extern queue_t sleep_queue;
+
+/* current running task PCB */
+extern pcb_t *current_running;
+extern pid_t lock_id;
+
+extern uint32_t inode_size;
+extern uint32_t inode_offset;
+extern uint32_t pwd;
+extern char* name_ptr;
+
+extern pcb_t pcb[NUM_MAX_TASK];
+extern uint32_t initial_cp0_status;
+
+void do_scheduler(void);
+void do_sleep(uint32_t);
+
+void do_block(queue_t *);
+void do_unblock_one(queue_t *);
+void do_unblock_all(queue_t *);
+
+void do_ps();
+
+void do_spawn(pid_t);
+void do_kill(pid_t);
+void do_exit();
+void do_waitpid(pid_t);
+
+void init_filedesc();
+void do_mkfs();
+void do_statfs();
+void do_cd(char *);
+void do_mkdir(char *);
+void do_rmdir(char *);
+void do_ls();
+void do_touch(char*);
+void do_read(int, char*, uint32_t);
+void do_write(int, char*, uint32_t);
+void do_close(int);
+int do_open(char*, uint32_t);
+void do_cat(char*);
+void write_mem(uint32_t, uint32_t);
+uint32_t read_mem(uint32_t);
+void fillzero(uint32_t);
+uint32_t count_1_map(uint32_t);
+uint32_t get_1_map(uint32_t);
+void set_1_map(uint32_t);
+
+void savefilename();
+void loadfilename();
+
+pid_t do_getpid();
+#endif

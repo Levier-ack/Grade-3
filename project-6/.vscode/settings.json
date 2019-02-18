@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "lock.h": "c",
+        "sync.h": "c",
+        "screen.h": "c"
+    }
+}
