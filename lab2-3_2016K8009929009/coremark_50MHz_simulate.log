@@ -1,0 +1,70 @@
+Vivado Simulator 2018.2
+Time resolution is 1 ps
+ Block Memory Generator module loading initial data...
+ Block Memory Generator data initialization complete.
+Block Memory Generator module tb_top.soc_lite.inst_ram.inst.native_mem_module.blk_mem_gen_v8_4_1_inst is using a behavioral model for simulation which will not precisely model memory collision behavior.
+ Block Memory Generator module loading initial data...
+ Block Memory Generator data initialization complete.
+Block Memory Generator module tb_top.soc_lite.data_ram.inst.native_mem_module.blk_mem_gen_v8_4_1_inst is using a behavioral model for simulation which will not precisely model memory collision behavior.
+==============================================================
+Test begin!
+coremark test begin.
+
+arg : 0, 0, 102, 1, 7, 1, 2000 
+
+test start
+
+computation done 
+
+2K performance run parameters for coremark.
+
+CoreMark Size    : 666
+
+Total ns : 7473540
+
+Iterations/1000Sec : 133815
+
+The CPU Freq you set is 50MHz
+
+So COREMARK/MHZ : 2676/1000
+
+COREMARK/MHZ = (1000000.0/CPU_COUNT_PER_US)*NSEC_PER_USEC*results[0].iterations/total_ns
+
+It equals to 1000MHz/CPU_Freq(MHz) * 1000*1000*iteration/total_ns
+
+It also equals to (Iterations/1000Sec)/CPU_Freq(MHz)/1000
+
+In this run, iterate=1, total_ns=7473540
+
+
+
+Total ticks      : 0
+
+Iterations       : 1
+
+Compiler version : GCC4.3.0
+
+Compiler flags   :  -O3 -mno-abicalls -funroll-all-loops -falign-jumps=16 -falign-functions=16 -fgcse-sm -fgcse-las -finline-functions -finline-limit=1000 -msoft-float -EL -march=mips1 -mips1
+
+Memory location  : Please put data memory location here
+
+			(e.g. code in flash, data on heap etc)
+
+seedcrc          : 0xe9f5
+
+[0]crclist       : 0xe714
+
+[0]crcmatrix     : 0x1fd7
+
+[0]crcstate      : 0x8e3a
+
+[0]crcfinal      : 0xe714
+
+Correct operation validated. See readme.txt for run and reporting rules.
+
+coremark PASS!
+
+==============================================================
+Test end!
+----PASS!!!
+$finish called at time : 8372795 ns : File "E:/ucas_CDE/mycpu_verify/testbench/mycpu_tb.v" Line 261
