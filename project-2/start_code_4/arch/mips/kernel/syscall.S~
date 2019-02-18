@@ -1,0 +1,13 @@
+#include "asm.h"
+
+LEAF(invoke_syscall)
+	mfc0   k0,CP0_STATUS
+	addu   a0,zero,k0	
+	 jal  debuginfo	
+	addu a0,zero,a1
+	# jal  debuginfo	
+	addu a1,zero,a2
+	addu a2,zero,a3    
+	//jal syscall[k0]// TODO syscall entry
+        syscall
+END(invoke_syscall)
